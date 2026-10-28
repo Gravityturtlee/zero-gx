@@ -1,0 +1,557 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZERO-GX</title>
+<style>
+:root {
+  --neon: #00f7ff;
+  --bg: #07070b;
+  --panel: #11111b;
+  --text: #f5f5fa;
+  --muted: #9696aa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+header {
+  height: 65px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #08080df5;
+  border-bottom: 1px solid #282838;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+.logo {
+  font-family: "Arial Narrow", Impact, sans-serif;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+.logo span { color: var(--neon); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.status { color: var(--neon); font-size: 10px; letter-spacing: 1px; }
+.settings-button {
+  color: var(--neon);
+  background: var(--panel);
+  border: 1px solid var(--neon);
+  border-radius: 7px;
+  padding: 9px 12px;
+}
+.layout { display: flex; min-height: calc(100vh - 65px); }
+.sidebar {
+  width: 185px;
+  flex-shrink: 0;
+  padding: 18px 10px;
+  background: #090910;
+  border-right: 1px solid #282838;
+}
+.navbtn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 7px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+}
+.navbtn.active, .navbtn:hover {
+  color: var(--neon);
+  background: #111820;
+  border-color: #263943;
+}
+main { flex: 1; min-width: 0; padding: 32px 22px 55px; }
+.page { display: none; max-width: 1000px; margin: auto; }
+.page.active { display: block; }
+h1, h2, h3 {
+  font-family: "Arial Narrow", Impact, sans-serif;
+  letter-spacing: 1px;
+}
+h1 { font-size: clamp(38px, 7vw, 65px); margin: 0 0 12px; }
+h1 span { color: var(--neon); }
+.subtitle { color: var(--muted); line-height: 1.6; }
+.label { color: var(--neon); font-size: 11px; letter-spacing: 3px; margin: 20px 0 12px; }
+.neon-line {
+  height: 2px;
+  margin: 22px 0;
+  background: linear-gradient(90deg, transparent, var(--neon), #a000ff, transparent);
+  box-shadow: 0 0 10px var(--neon);
+}
+.search { display: flex; gap: 8px; margin: 24px 0 12px; }
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #343447;
+  background: var(--panel);
+  color: white;
+  outline: none;
+}
+.search input:focus { border-color: var(--neon); }
+.btn {
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 7px;
+  color: #050509;
+  background: var(--neon);
+  font-weight: bold;
+}
+.btn.secondary { color: white; background: var(--panel); border: 1px solid #343447; }
+.clock { color: var(--neon); letter-spacing: 3px; margin: 20px 0 28px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.card {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid #29293b;
+  border-radius: 9px;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.card:hover { border-color: var(--neon); }
+.card strong { display: block; margin-bottom: 7px; }
+.card small { color: var(--muted); }
+.settings-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.color {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #ffffff66;
+}
+#browserView { display: none; margin-top: 22px; }
+#browserAddress { color: var(--neon); overflow-wrap: anywhere; font-size: 12px; }
+#browserFrame {
+  width: 100%;
+  height: 65vh;
+  background: white;
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+}
+.terminal {
+  background: #020704;
+  color: #51ff91;
+  border: 1px solid #1e7547;
+  border-radius: 8px;
+  padding: 16px;
+  font: 14px/1.7 monospace;
+  overflow-wrap: anywhere;
+  min-height: 180px;
+}
+.terminal input { background: transparent; color: #51ff91; border: 0; outline: 0; width: 70%; }
+#gameCanvas { display: block; width: 100%; background: #050510; border-radius: 8px; touch-action: manipulation; }
+footer { margin-top: 40px; color: #69697c; font-size: 11px; }
+@media (min-width: 751px) {
+  .sidebar { position: fixed; top: 65px; bottom: 0; left: 0; overflow-y: auto; }
+  main { margin-left: 185px; }
+}
+@media (max-width: 750px) {
+  header { height: 57px; padding: 0 10px; }
+  .logo { font-size: 22px; }
+  .status { display: none; }
+  .settings-button { padding: 8px; font-size: 12px; }
+  .layout { display: block; }
+  .sidebar {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 7px;
+    position: sticky;
+    top: 57px;
+    z-index: 8;
+    border-right: 0;
+    border-bottom: 1px solid #282838;
+  }
+  .navbtn { width: auto; flex-shrink: 0; margin: 0; padding: 10px; font-size: 12px; }
+  main { padding: 26px 14px 40px; }
+  .search { flex-wrap: wrap; }
+  .search input { flex-basis: 100%; }
+  .search .btn { flex: 1; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ZERO<span>-GX</span></div>
+  <div class="header-right">
+    <button class="settings-button" id="openSettings">⚙ Settings</button>
+    <div class="status">● ONLINE</div>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="sidebar">
+  <button class="navbtn active" data-page="home">⌂ Home</button>
+  <button class="navbtn" data-page="games">▣ Games</button>
+  <button class="navbtn" data-page="streamer">◉ Streamer</button>
+  <button class="navbtn" data-page="hacker">⌘ Hacker</button>
+  <button class="navbtn" data-page="settings">⚙ Settings</button>
+</nav>
+
+<main>
+<section class="page active" id="home">
+  <div class="label">WELCOME TO THE GRID</div>
+  <h1>ENTER THE <span>UNKNOWN.</span></h1>
+  <p class="subtitle">Your space. Your rules. Your next destination.</p>
+  <div class="neon-line"></div>
+
+  <form class="search" id="searchForm">
+    <input id="searchInput" placeholder="Search DuckDuckGo or enter a website..." autocomplete="off">
+    <button class="btn" type="submit">GO ↗</button>
+  </form>
+
+  <div class="clock" id="clock"></div>
+
+  <div id="browserView">
+    <div class="settings-row">
+      <button class="btn secondary" id="browserBack">← Home</button>
+      <span id="browserAddress"></span>
+    </div>
+    <iframe id="browserFrame" title="Website viewer" referrerpolicy="no-referrer"></iframe>
+    <p class="subtitle">Some websites block embedded browsing. The proxy URL can be configured in Settings.</p>
+  </div>
+
+  <div id="homeContent">
+    <div class="label">QUICK ACCESS</div>
+    <div class="grid">
+      <a class="card external" href="https://duckduckgo.com"><strong>DuckDuckGo ↗</strong><small>Private search engine</small></a>
+      <a class="card external" href="https://www.youtube.com"><strong>YouTube ↗</strong><small>Videos and music</small></a>
+      <a class="card external" href="https://github.com"><strong>GitHub ↗</strong><small>Your projects</small></a>
+      <a class="card external" href="https://drive.google.com"><strong>Google Drive ↗</strong><small>Your files</small></a>
+    </div>
+  </div>
+  <div class="neon-line"></div>
+  <p class="subtitle">ZERO-GX // PERSONAL WEB INTERFACE</p>
+</section>
+
+<section class="page" id="games">
+  <div class="label">ENTERTAINMENT ZONE</div>
+  <h1>THE <span>ARCADE.</span></h1>
+  <p class="subtitle">Open a game website or play Zero Runner below.</p>
+  <div class="grid">
+    <a class="card external" href="https://www.crazygames.com"><strong>CrazyGames ↗</strong><small>Browser games</small></a>
+    <a class="card external" href="https://poki.com"><strong>Poki ↗</strong><small>Online games</small></a>
+    <a class="card external" href="https://www.coolmathgames.com"><strong>Coolmath Games ↗</strong><small>Puzzles</small></a>
+    <a class="card external" href="https://itch.io/games/html5"><strong>itch.io ↗</strong><small>Indie web games</small></a>
+    <a class="card external" href="https://www.minecraft.net"><strong>Minecraft ↗</strong><small>Official website</small></a>
+    <a class="card external" href="https://www.roblox.com"><strong>Roblox ↗</strong><small>Games and creations</small></a>
+    <a class="card external" href="https://diep.io"><strong>Diep.io ↗</strong><small>Tank arena</small></a>
+    <a class="card external" href="https://shellshock.io"><strong>Shell Shockers ↗</strong><small>Egg battle game</small></a>
+    <a class="card external" href="https://krunker.io"><strong>Krunker ↗</strong><small>Browser shooter</small></a>
+    <a class="card external" href="https://2048game.com"><strong>2048 ↗</strong><small>Number puzzle</small></a>
+  </div>
+  <div class="neon-line"></div>
+  <h2>ZERO RUNNER</h2>
+  <p class="subtitle">Tap the game to jump over blocks.</p>
+  <canvas id="gameCanvas" width="700" height="220"></canvas>
+  <div class="settings-row">
+    <button class="btn" id="startGame">START / RESTART</button>
+    <span id="gameScore">Score: 0</span>
+  </div>
+</section>
+
+<section class="page" id="streamer">
+  <div class="label">CREATOR SIMULATION</div>
+  <h1>STREAMER <span>MODE.</span></h1>
+  <p class="subtitle">Fictional stream dashboard. No real viewers or gifts.</p>
+  <div class="grid">
+    <div class="card"><strong id="viewers">1,248</strong><small>Simulated viewers</small></div>
+    <div class="card"><strong id="likes">8,420</strong><small>Simulated likes</small></div>
+  </div>
+  <div class="settings-row">
+    <button class="btn" id="chatToggle">Start chat simulation</button>
+    <button class="btn secondary" id="giftButton">Test gift alert</button>
+  </div>
+  <div class="terminal" id="chatBox">ZERO-GX SIMULATED CHAT</div>
+</section>
+
+<section class="page" id="hacker">
+  <div class="label">SIMULATION ONLY</div>
+  <h1>HACKER <span>MODE.</span></h1>
+  <p class="subtitle">Fictional terminal commands; no real systems are accessed.</p>
+  <div class="terminal">
+    ZERO-GX TERMINAL v1.0<br>
+    Type HELP to see commands.<br><br>
+    <span id="terminalOutput"></span><br>
+    &gt; <input id="terminalInput" placeholder="type HELP" autocomplete="off">
+  </div>
+  <h2>RADAR SIMULATION</h2>
+  <canvas id="radarCanvas" width="500" height="300" style="width:100%;max-width:500px;background:#020704;border:1px solid #1e7547;border-radius:8px"></canvas>
+</section>
+
+<section class="page" id="settings">
+  <div class="label">CUSTOMIZE YOUR SPACE</div>
+  <h1>SYSTEM <span>SETTINGS.</span></h1>
+  <h3>Neon accent color</h3>
+  <div class="settings-row">
+    <button class="color" style="background:#00f7ff" data-color="#00f7ff" aria-label="Cyan"></button>
+    <button class="color" style="background:#a855f7" data-color="#a855f7" aria-label="Purple"></button>
+    <button class="color" style="background:#39ff14" data-color="#39ff14" aria-label="Green"></button>
+    <button class="color" style="background:#ff2bd6" data-color="#ff2bd6" aria-label="Pink"></button>
+    <button class="color" style="background:#ff4b4b" data-color="#ff4b4b" aria-label="Red"></button>
+    <button class="color" style="background:#ffb000" data-color="#ffb000" aria-label="Orange"></button>
+    <button class="color" style="background:#ffffff" data-color="#ffffff" aria-label="White"></button>
+    <button class="color" style="background:#448aff" data-color="#448aff" aria-label="Blue"></button>
+  </div>
+  <div class="neon-line"></div>
+  <h3>Proxy configuration</h3>
+  <p class="subtitle">Enter the HTTPS URL of your deployed proxy server. Leave blank to use direct browsing attempts.</p>
+  <div class="search">
+    <input id="proxyUrl" placeholder="https://your-service.onrender.com">
+    <button class="btn" id="saveProxy">SAVE</button>
+  </div>
+  <p id="proxyStatus" class="subtitle"></p>
+  <p class="subtitle">This starter proxy supports only the domains configured on the server. It is not a full browser or a guarantee of anonymity.</p>
+</section>
+
+<footer>ZERO-GX • PERSONAL WEB INTERFACE</footer>
+</main>
+</div>
+
+<script>
+const pages = document.querySelectorAll(".page");
+const navButtons = document.querySelectorAll(".navbtn");
+
+function showPage(id) {
+  pages.forEach(page => page.classList.toggle("active", page.id === id));
+  navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === id));
+}
+navButtons.forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
+document.getElementById("openSettings").addEventListener("click", () => showPage("settings"));
+
+function updateClock() {
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString([], { hour12: false });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Accent colors
+const savedColor = localStorage.getItem("zerogx-color");
+if (savedColor) document.documentElement.style.setProperty("--neon", savedColor);
+document.querySelectorAll("[data-color]").forEach(button => {
+  button.addEventListener("click", () => {
+    const color = button.dataset.color;
+    document.documentElement.style.setProperty("--neon", color);
+    localStorage.setItem("zerogx-color", color);
+  });
+});
+
+// Proxy address configuration
+const proxyInput = document.getElementById("proxyUrl");
+const proxyStatus = document.getElementById("proxyStatus");
+proxyInput.value = localStorage.getItem("zerogx-proxy") || "";
+document.getElementById("saveProxy").addEventListener("click", () => {
+  const value = proxyInput.value.trim().replace(/\/+$/, "");
+  if (value && !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(value)) {
+    proxyStatus.textContent = "Enter a valid HTTPS service URL.";
+    return;
+  }
+  localStorage.setItem("zerogx-proxy", value);
+  proxyStatus.textContent = value ? "Proxy URL saved on this device." : "Proxy URL cleared.";
+});
+
+const browserView = document.getElementById("browserView");
+const browserFrame = document.getElementById("browserFrame");
+const browserAddress = document.getElementById("browserAddress");
+const homeContent = document.getElementById("homeContent");
+const searchInput = document.getElementById("searchInput");
+
+function navigate(input) {
+  input = input.trim();
+  if (!input) return;
+
+  let target;
+  if (/^https?:\/\//i.test(input)) {
+    target = new URL(input);
+  } else if (/^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(input)) {
+    target = new URL("https://" + input);
+  } else {
+    target = new URL("https://duckduckgo.com/?q=" + encodeURIComponent(input));
+  }
+
+  if (target.protocol !== "https:" && target.protocol !== "http:") {
+    proxyStatus.textContent = "Only HTTP and HTTPS addresses are supported.";
+    return;
+  }
+
+  const proxy = localStorage.getItem("zerogx-proxy") || "";
+  let destination = target.href;
+
+  // The current starter server proxies text responses only.
+  // It is not a general web browser or full-page rewriting proxy.
+  if (proxy) {
+    destination = proxy + "/proxy?url=" + encodeURIComponent(target.href);
+  }
+
+  browserView.style.display = "block";
+  homeContent.style.display = "none";
+  browserAddress.textContent = target.href;
+  browserFrame.src = destination;
+  browserView.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+document.getElementById("searchForm").addEventListener("submit", event => {
+  event.preventDefault();
+  navigate(searchInput.value);
+});
+
+document.querySelectorAll("a.external").forEach(link => {
+  link.addEventListener("click", event => {
+    event.preventDefault();
+    navigate(link.href);
+  });
+});
+
+document.getElementById("browserBack").addEventListener("click", () => {
+  browserFrame.src = "about:blank";
+  browserView.style.display = "none";
+  homeContent.style.display = "block";
+  searchInput.value = "";
+});
+
+// Terminal simulation
+const terminalInput = document.getElementById("terminalInput");
+const terminalOutput = document.getElementById("terminalOutput");
+terminalInput.addEventListener("keydown", event => {
+  if (event.key !== "Enter") return;
+  const command = terminalInput.value.trim().toUpperCase();
+  terminalInput.value = "";
+  const commands = {
+    HELP: "Commands: HELP, SCAN, STATUS, ACCESS, DECRYPT, CLEAR",
+    SCAN: "SIMULATION: 3 imaginary nodes found.",
+    STATUS: "SYSTEM ONLINE. SIMULATION MODE ACTIVE.",
+    ACCESS: "ACCESS GRANTED: simulated sandbox only.",
+    DECRYPT: "DEMO DATA: 010101",
+    CLEAR: ""
+  };
+  if (command === "CLEAR") terminalOutput.textContent = "";
+  else terminalOutput.textContent += "\n> " + command + "\n" + (commands[command] || "Unknown command. Type HELP.");
+});
+
+// Streamer simulation
+let chatTimer = null;
+const chatBox = document.getElementById("chatBox");
+const fakeMessages = [
+  "pixel_rider: this setup looks cool",
+  "NovaX: ZERO GX",
+  "ghostmode: what game is this?",
+  "bluebyte: clean interface",
+  "nightowl: gg",
+  "arcadefan: lets go"
+];
+document.getElementById("chatToggle").addEventListener("click", event => {
+  if (chatTimer) {
+    clearInterval(chatTimer);
+    chatTimer = null;
+    event.target.textContent = "Start chat simulation";
+    chatBox.textContent += "\n[Simulation stopped]";
+    return;
+  }
+  event.target.textContent = "Stop chat simulation";
+  chatBox.textContent = "ZERO-GX SIMULATED CHAT\n";
+  chatTimer = setInterval(() => {
+    chatBox.textContent += "\n" + fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
+    chatBox.scrollTop = chatBox.scrollHeight;
+    document.getElementById("viewers").textContent = (1200 + Math.floor(Math.random() * 500)).toLocaleString();
+    document.getElementById("likes").textContent = (8400 + Math.floor(Math.random() * 100)).toLocaleString();
+  }, 1800);
+});
+document.getElementById("giftButton").addEventListener("click", () => {
+  chatBox.textContent += "\nDEMO ALERT: fictional gift!";
+});
+
+// Zero Runner
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+let playerY = 170, velocity = 0, obstacleX = 700, score = 0, running = false;
+function jump() {
+  if (running && playerY >= 169) velocity = -11;
+}
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "#263344";
+  ctx.beginPath(); ctx.moveTo(0, 190); ctx.lineTo(700, 190); ctx.stroke();
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--neon");
+  ctx.fillRect(70, playerY, 25, 25);
+  ctx.fillRect(obstacleX, 165, 24, 25);
+  ctx.fillStyle = "#aaa"; ctx.font = "13px Arial";
+  ctx.fillText(running ? "RUN!" : "PRESS START", 15, 22);
+}
+function gameLoop() {
+  if (!running) return;
+  velocity += 0.55; playerY += velocity;
+  if (playerY > 170) { playerY = 170; velocity = 0; }
+  obstacleX -= 5;
+  if (obstacleX < -25) {
+    obstacleX = 700; score++;
+    document.getElementById("gameScore").textContent = "Score: " + score;
+  }
+  if (obstacleX < 95 && obstacleX > 55 && playerY > 145) {
+    running = false;
+    document.getElementById("gameScore").textContent = "Game over! Score: " + score;
+  }
+  drawGame();
+  if (running) requestAnimationFrame(gameLoop);
+}
+document.getElementById("startGame").addEventListener("click", () => {
+  score = 0; playerY = 170; velocity = 0; obstacleX = 700; running = true;
+  document.getElementById("gameScore").textContent = "Score: 0";
+  gameLoop();
+});
+canvas.addEventListener("pointerdown", jump);
+document.addEventListener("keydown", event => {
+  if (event.code === "Space" && document.getElementById("games").classList.contains("active")) {
+    event.preventDefault(); jump();
+  }
+});
+drawGame();
+
+// Fictional radar
+const radar = document.getElementById("radarCanvas");
+const rctx = radar.getContext("2d");
+let angle = 0;
+function drawRadar() {
+  rctx.clearRect(0, 0, radar.width, radar.height);
+  const cx = 250, cy = 150, radius = 120;
+  rctx.strokeStyle = "#1b7547";
+  for (let r = 30; r <= radius; r += 30) {
+    rctx.beginPath(); rctx.arc(cx, cy, r, 0, Math.PI * 2); rctx.stroke();
+  }
+  rctx.beginPath();
+  rctx.moveTo(cx-radius, cy); rctx.lineTo(cx+radius, cy);
+  rctx.moveTo(cx, cy-radius); rctx.lineTo(cx, cy+radius); rctx.stroke();
+  rctx.strokeStyle = "#51ff91";
+  rctx.beginPath(); rctx.moveTo(cx, cy);
+  rctx.lineTo(cx + Math.cos(angle)*radius, cy + Math.sin(angle)*radius); rctx.stroke();
+  rctx.fillStyle = "#51ff91";
+  [[300,100],[190,180],[270,205],[340,145]].forEach(([x,y]) => {
+    rctx.beginPath(); rctx.arc(x,y,3,0,Math.PI*2); rctx.fill();
+  });
+  angle += 0.025;
+  requestAnimationFrame(drawRadar);
+}
+drawRadar();
+</script>
+</body>
+</html>
